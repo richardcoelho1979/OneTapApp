@@ -1,0 +1,1752 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: OneTap Platform API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User profiles
+  - name: friends
+    description: Friend management
+  - name: rooms
+    description: Game rooms
+  - name: notifications
+    description: User notifications
+  - name: seasons
+    description: Platform seasons
+  - name: achievements
+    description: Achievements
+  - name: rankings
+    description: Leaderboards
+  - name: championships
+    description: Tournaments
+  - name: subscriptions
+    description: OneTap Plus subscription
+  - name: games
+    description: Game registry
+  - name: sessions
+    description: Game session lifecycle (start, pause, resume, state)
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ─── AUTH ────────────────────────────────────────────────────────────────────
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register with email/password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegistration"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email/password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLogin"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      tags: [auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRefreshInput"
+      responses:
+        "200":
+          description: New token pair
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout and invalidate token
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Logged out
+
+  /auth/google:
+    post:
+      operationId: loginWithGoogle
+      tags: [auth]
+      summary: Authenticate with Google OAuth token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OAuthInput"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid OAuth token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/apple:
+    post:
+      operationId: loginWithApple
+      tags: [auth]
+      summary: Authenticate with Apple Sign In token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OAuthInput"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid OAuth token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── USERS ───────────────────────────────────────────────────────────────────
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateMe
+      tags: [users]
+      summary: Update current user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/search:
+    get:
+      operationId: searchUsers
+      tags: [users]
+      summary: Search users by username
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+      responses:
+        "200":
+          description: Matching users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserProfile"
+
+  /users/{userId}:
+    get:
+      operationId: getUserById
+      tags: [users]
+      summary: Get a user's public profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/{userId}/achievements:
+    get:
+      operationId: getUserAchievements
+      tags: [achievements]
+      summary: Get achievements earned by a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User achievements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserAchievement"
+
+  # ─── FRIENDS ─────────────────────────────────────────────────────────────────
+  /friends:
+    get:
+      operationId: listFriends
+      tags: [friends]
+      summary: List current user's friends
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Friends list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Friendship"
+
+  /friends/request:
+    post:
+      operationId: sendFriendRequest
+      tags: [friends]
+      summary: Send a friend request
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FriendRequestInput"
+      responses:
+        "201":
+          description: Request sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendRequest"
+        "409":
+          description: Already friends or request pending
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /friends/requests:
+    get:
+      operationId: listIncomingRequests
+      tags: [friends]
+      summary: List incoming friend requests
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Incoming requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FriendRequest"
+
+  /friends/requests/sent:
+    get:
+      operationId: listSentRequests
+      tags: [friends]
+      summary: List sent friend requests
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Sent requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FriendRequest"
+
+  /friends/requests/{requestId}:
+    patch:
+      operationId: respondToFriendRequest
+      tags: [friends]
+      summary: Accept or reject a friend request
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FriendRequestUpdate"
+      responses:
+        "200":
+          description: Updated request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendRequest"
+        "404":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /friends/{friendId}:
+    delete:
+      operationId: removeFriend
+      tags: [friends]
+      summary: Remove a friend
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: friendId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Friendship removed
+        "404":
+          description: Friend not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── ROOMS ───────────────────────────────────────────────────────────────────
+  /rooms:
+    get:
+      operationId: listRooms
+      tags: [rooms]
+      summary: List active public rooms
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Active rooms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Room"
+    post:
+      operationId: createRoom
+      tags: [rooms]
+      summary: Create a game room
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomInput"
+      responses:
+        "201":
+          description: Room created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+
+  /rooms/{roomId}:
+    get:
+      operationId: getRoom
+      tags: [rooms]
+      summary: Get room details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Room
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "404":
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteRoom
+      tags: [rooms]
+      summary: Delete a room (host only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Room deleted
+        "403":
+          description: Not the host
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /rooms/{roomId}/join:
+    post:
+      operationId: joinRoom
+      tags: [rooms]
+      summary: Join a room by ID or code
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomJoinInput"
+      responses:
+        "200":
+          description: Joined room
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "409":
+          description: Room is full or already in room
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /rooms/{roomId}/leave:
+    post:
+      operationId: leaveRoom
+      tags: [rooms]
+      summary: Leave a room
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Left room
+
+  /rooms/join-by-code:
+    post:
+      operationId: joinRoomByCode
+      tags: [rooms]
+      summary: Join a room using its invite code
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomCodeInput"
+      responses:
+        "200":
+          description: Joined room
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "404":
+          description: Invalid code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List user notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: unreadOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{notificationId}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: All marked as read
+
+  # ─── SEASONS ─────────────────────────────────────────────────────────────────
+  /seasons:
+    get:
+      operationId: listSeasons
+      tags: [seasons]
+      summary: List all seasons
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Seasons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Season"
+
+  /seasons/current:
+    get:
+      operationId: getCurrentSeason
+      tags: [seasons]
+      summary: Get the current active season
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current season
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Season"
+        "404":
+          description: No active season
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── ACHIEVEMENTS ─────────────────────────────────────────────────────────────
+  /achievements:
+    get:
+      operationId: listAchievements
+      tags: [achievements]
+      summary: List all platform achievements
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All achievements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Achievement"
+
+  # ─── RANKINGS ────────────────────────────────────────────────────────────────
+  /rankings:
+    get:
+      operationId: getGlobalRanking
+      tags: [rankings]
+      summary: Get global leaderboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: seasonId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Global ranking
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RankingEntry"
+
+  /rankings/friends:
+    get:
+      operationId: getFriendsRanking
+      tags: [rankings]
+      summary: Get friends leaderboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: seasonId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Friends ranking
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RankingEntry"
+
+  # ─── CHAMPIONSHIPS ────────────────────────────────────────────────────────────
+  /championships:
+    get:
+      operationId: listChampionships
+      tags: [championships]
+      summary: List championships
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [upcoming, active, finished]
+      responses:
+        "200":
+          description: Championships
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Championship"
+
+  /championships/{championshipId}:
+    get:
+      operationId: getChampionship
+      tags: [championships]
+      summary: Get championship details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: championshipId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Championship
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Championship"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── SUBSCRIPTIONS ────────────────────────────────────────────────────────────
+  /subscriptions/me:
+    get:
+      operationId: getMySubscription
+      tags: [subscriptions]
+      summary: Get current user's OneTap Plus status
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Subscription status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+
+  # ─── GAMES ───────────────────────────────────────────────────────────────────
+  /games:
+    get:
+      operationId: listGames
+      tags: [games]
+      summary: List all registered games
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Game"
+
+  # ─── GAME SESSIONS ───────────────────────────────────────────────────────────
+  /rooms/{roomId}/session/start:
+    post:
+      operationId: startSession
+      tags: [sessions]
+      summary: Start a game session in a room (host only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartSessionInput"
+      responses:
+        "201":
+          description: Session created and started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameSession"
+        "403":
+          description: Not the host
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /sessions/solo:
+    post:
+      operationId: startSoloSession
+      tags: [sessions]
+      summary: Start a solo game session (creates a private single-player room)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SoloSessionInput"
+      responses:
+        "201":
+          description: Solo session created and started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameSession"
+        "404":
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /sessions/{sessionId}:
+    get:
+      operationId: getSession
+      tags: [sessions]
+      summary: Get full session state (including game state JSON)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameSession"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /sessions/{sessionId}/pause:
+    post:
+      operationId: pauseSession
+      tags: [sessions]
+      summary: Pause an active session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session paused
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameSession"
+        "409":
+          description: Session not in playing state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /sessions/{sessionId}/resume:
+    post:
+      operationId: resumeSession
+      tags: [sessions]
+      summary: Resume a paused session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session resumed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameSession"
+        "409":
+          description: Session not paused
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /sessions/{sessionId}/action:
+    post:
+      operationId: submitGameAction
+      tags: [sessions]
+      summary: Submit a player action to the game engine (plugin system)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GameActionInput"
+      responses:
+        "200":
+          description: Updated session (auto-finished when the game ends)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameSession"
+        "400":
+          description: Invalid move (rejected by the game engine)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Session not in playing state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /rooms/{roomId}/session/current:
+    get:
+      operationId: getRoomCurrentSession
+      tags: [sessions]
+      summary: Get the active session of a room (participants only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Active session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameSession"
+        "404":
+          description: No active session for this room
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /sessions/{sessionId}/state:
+    post:
+      operationId: updateSessionState
+      tags: [sessions]
+      summary: Persist the current game state (called by the game engine)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSessionStateInput"
+      responses:
+        "200":
+          description: State saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameSession"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /sessions/{sessionId}/finish:
+    post:
+      operationId: finishSession
+      tags: [sessions]
+      summary: Finish the session, record scores and distribute XP
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinishSessionInput"
+      responses:
+        "200":
+          description: Session finished with final standings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameSession"
+        "403":
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /sessions/{sessionId}/players/{userId}/connection:
+    patch:
+      operationId: updatePlayerConnection
+      tags: [sessions]
+      summary: Update player connection status (online/offline)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlayerConnectionInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameSession"
+
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    # ─── AUTH SCHEMAS ─────────────────────────────────────────────────────────
+    UserRegistration:
+      type: object
+      required: [username, email, password]
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+        email:
+          type: string
+        password:
+          type: string
+          minLength: 8
+        language:
+          type: string
+          enum: [pt, en]
+          default: pt
+
+    UserLogin:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    TokenRefreshInput:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    OAuthInput:
+      type: object
+      required: [token, provider]
+      properties:
+        token:
+          type: string
+        provider:
+          type: string
+          enum: [google, apple]
+
+    AuthResponse:
+      type: object
+      required: [accessToken, refreshToken, user]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserProfile"
+
+    # ─── USER SCHEMAS ─────────────────────────────────────────────────────────
+    UserProfile:
+      type: object
+      required: [id, username, email, level, xp, language, isPlusMember, onlineStatus, createdAt]
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+
+        bio:
+          type: ["string", "null"]
+        level:
+          type: integer
+        xp:
+          type: integer
+        country:
+          type: ["string", "null"]
+        language:
+          type: string
+          enum: [pt, en]
+        isPlusMember:
+          type: boolean
+        onlineStatus:
+          type: string
+          enum: [online, away, offline]
+        gamesPlayed:
+          type: integer
+        wins:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    UserUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+        bio:
+          type: string
+          maxLength: 200
+        avatarUrl:
+          type: string
+        language:
+          type: string
+          enum: [pt, en]
+        country:
+          type: string
+
+    # ─── FRIEND SCHEMAS ───────────────────────────────────────────────────────
+    FriendRequestInput:
+      type: object
+      required: [toUserId]
+      properties:
+        toUserId:
+          type: string
+
+    FriendRequestUpdate:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [accept, reject]
+
+    FriendRequest:
+      type: object
+      required: [id, fromUserId, toUserId, status, createdAt]
+      properties:
+        id:
+          type: string
+        fromUserId:
+          type: string
+        toUserId:
+          type: string
+        status:
+          type: string
+          enum: [pending, accepted, rejected]
+        fromUser:
+          $ref: "#/components/schemas/UserProfile"
+        toUser:
+          $ref: "#/components/schemas/UserProfile"
+        createdAt:
+          type: string
+          format: date-time
+
+    Friendship:
+      type: object
+      required: [id, userId, friendId, friend, createdAt]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        friendId:
+          type: string
+        friend:
+          $ref: "#/components/schemas/UserProfile"
+        createdAt:
+          type: string
+          format: date-time
+
+    # ─── ROOM SCHEMAS ─────────────────────────────────────────────────────────
+    RoomInput:
+      type: object
+      required: [name, maxPlayers]
+      properties:
+        gameId:
+          type: ["string", "null"]
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        maxPlayers:
+          type: integer
+          minimum: 2
+          maximum: 16
+        isPrivate:
+          type: boolean
+          default: false
+
+    RoomJoinInput:
+      type: object
+      properties:
+        code:
+          type: string
+
+    RoomCodeInput:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+
+    RoomPlayer:
+      type: object
+      required: [userId, username, avatarUrl, isHost, joinedAt]
+      properties:
+        userId:
+          type: string
+        username:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        isHost:
+          type: boolean
+        joinedAt:
+          type: string
+          format: date-time
+
+    Room:
+      type: object
+      required: [id, name, code, hostId, maxPlayers, currentPlayers, status, isPrivate, createdAt]
+      properties:
+        id:
+          type: string
+        gameId:
+          type: ["string", "null"]
+        name:
+          type: string
+        code:
+          type: string
+        hostId:
+          type: string
+        players:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoomPlayer"
+        maxPlayers:
+          type: integer
+        currentPlayers:
+          type: integer
+        status:
+          type: string
+          enum: [waiting, in_game, finished]
+        isPrivate:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    # ─── NOTIFICATION SCHEMAS ─────────────────────────────────────────────────
+    Notification:
+      type: object
+      required: [id, type, title, body, isRead, createdAt]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [friend_request, friend_accepted, room_invite, achievement_unlocked, season_start, season_end, system]
+        title:
+          type: string
+        body:
+          type: string
+        isRead:
+          type: boolean
+        data:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+
+    # ─── SEASON SCHEMAS ───────────────────────────────────────────────────────
+    Season:
+      type: object
+      required: [id, name, number, startDate, endDate, isActive]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        number:
+          type: integer
+        description:
+          type: ["string", "null"]
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+        themeColor:
+          type: ["string", "null"]
+
+    # ─── ACHIEVEMENT SCHEMAS ──────────────────────────────────────────────────
+    Achievement:
+      type: object
+      required: [id, key, title, description, icon, category, xpReward]
+      properties:
+        id:
+          type: string
+        key:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        category:
+          type: string
+          enum: [social, competitive, explorer, milestone, seasonal]
+        xpReward:
+          type: integer
+        isSecret:
+          type: boolean
+
+    UserAchievement:
+      type: object
+      required: [achievement, unlockedAt]
+      properties:
+        achievement:
+          $ref: "#/components/schemas/Achievement"
+        unlockedAt:
+          type: string
+          format: date-time
+
+    # ─── RANKING SCHEMAS ──────────────────────────────────────────────────────
+    RankingEntry:
+      type: object
+      required: [rank, userId, username, xp, level, gamesPlayed, wins]
+      properties:
+        rank:
+          type: integer
+        userId:
+          type: string
+        username:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        xp:
+          type: integer
+        level:
+          type: integer
+        gamesPlayed:
+          type: integer
+        wins:
+          type: integer
+        isPlusMember:
+          type: boolean
+
+    # ─── CHAMPIONSHIP SCHEMAS ─────────────────────────────────────────────────
+    Championship:
+      type: object
+      required: [id, name, status, startDate, endDate, maxParticipants, currentParticipants]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        gameId:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [upcoming, active, finished]
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        maxParticipants:
+          type: integer
+        currentParticipants:
+          type: integer
+        prizeDescription:
+          type: ["string", "null"]
+        isExclusive:
+          type: boolean
+        bannerUrl:
+          type: ["string", "null"]
+
+    # ─── SUBSCRIPTION SCHEMAS ─────────────────────────────────────────────────
+    Subscription:
+      type: object
+      required: [isPlusMember]
+      properties:
+        isPlusMember:
+          type: boolean
+        plan:
+          type: ["string", "null"]
+          enum: [monthly, annual, null]
+        expiresAt:
+          type: ["string", "null"]
+          format: date-time
+        startedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    # ─── GAME SESSION SCHEMAS ─────────────────────────────────────────────────
+    GameSessionPlayer:
+      type: object
+      required: [userId, username, score, isConnected, finalRank, lastSeenAt, joinedAt]
+      properties:
+        userId:
+          type: string
+        username:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        score:
+          type: integer
+        finalRank:
+          type: ["integer", "null"]
+        isConnected:
+          type: boolean
+        lastSeenAt:
+          type: string
+          format: date-time
+        joinedAt:
+          type: string
+          format: date-time
+
+    GameSession:
+      type: object
+      required: [id, roomId, gameId, status, round, state, players, createdAt]
+      properties:
+        id:
+          type: string
+        roomId:
+          type: string
+        gameId:
+          type: string
+        status:
+          type: string
+          enum: [waiting, playing, paused, finished, abandoned]
+        round:
+          type: integer
+        currentTurnUserId:
+          type: ["string", "null"]
+        state:
+          type: object
+          description: Arbitrary JSON game state — each game defines its own structure
+          additionalProperties: true
+        players:
+          type: array
+          items:
+            $ref: "#/components/schemas/GameSessionPlayer"
+        startedAt:
+          type: ["string", "null"]
+          format: date-time
+        pausedAt:
+          type: ["string", "null"]
+          format: date-time
+        resumedAt:
+          type: ["string", "null"]
+          format: date-time
+        finishedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    StartSessionInput:
+      type: object
+      required: [gameId]
+      properties:
+        gameId:
+          type: string
+
+    SoloSessionInput:
+      type: object
+      required: [gameId]
+      properties:
+        gameId:
+          type: string
+
+    GameActionInput:
+      type: object
+      required: [type, payload]
+      properties:
+        type:
+          type: string
+          description: Action type understood by the game engine (e.g. "flip")
+        payload:
+          type: object
+          additionalProperties: true
+
+    UpdateSessionStateInput:
+      type: object
+      required: [state]
+      properties:
+        state:
+          type: object
+          description: Full game state to persist
+          additionalProperties: true
+        round:
+          type: integer
+        currentTurnUserId:
+          type: ["string", "null"]
+
+    FinishSessionInput:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            required: [userId, score, finalRank]
+            properties:
+              userId:
+                type: string
+              score:
+                type: integer
+              finalRank:
+                type: integer
+
+    PlayerConnectionInput:
+      type: object
+      required: [isConnected]
+      properties:
+        isConnected:
+          type: boolean
+
+    # ─── GAME SCHEMAS ─────────────────────────────────────────────────────────
+    Game:
+      type: object
+      required: [id, name, description, minPlayers, maxPlayers, averageDuration, isActive]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        minPlayers:
+          type: integer
+        maxPlayers:
+          type: integer
+        averageDuration:
+          type: integer
+          description: Duration in seconds
+        iconUrl:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        isPlusExclusive:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string

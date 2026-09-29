@@ -1,0 +1,10 @@
+- [Fastify v4 TypeScript import pattern](fastify-ts-import.md) — use subpath imports to bypass `export = fastify` incompatibility with `moduleResolution: "bundler"`
+- [Module augmentation for FastifyRequest](fastify-ts-import.md) — augment both `fastify` and `fastify/types/request` AND put it inside a `.ts` file with exports (not `.d.ts` ambient)
+- [API versioning migration](api-v1-migration.md) — routes moved from `/api/...` to `/api/v1/...`; generated api-client src+dist files updated with sed
+- [Game plugin system](game-plugin-system.md) — registry/runner/context architecture, engine conventions (`playerOrder`/`__actorId`), 2-level i18n key limit, state-leak tradeoff
+- [Solo mode design](solo-mode.md) — solo = private 1-player room (no schema change); fixed 25 XP, no win credit; session endpoints require participant auth
+- [Fastify v4 setErrorHandler scoping + raw response](fastify-error-handler.md) — setErrorHandler must precede registerRoutes; reply.send() in handler routes through error serializer; use reply.raw.writeHead+end instead
+- [Refresh token ID alignment](refresh-token-id.md) — JWT tokenId and DB record id must match; createRefreshToken must accept caller-supplied id
+- [Fastify empty JSON body](fastify-empty-json.md) — mobile SDKs send Content-Type: application/json without body; add global addContentTypeParser to treat empty string as {}
+- [Metrics endpoint auth pattern](metrics-auth.md) — METRICS_SECRET set → require x-metrics-key header; no secret + production → 403; no secret + dev → allow
+- [OAuth JWKS verification](oauth-jwks.md) — use jose createRemoteJWKSet + jwtVerify; never parse JWT manually with Buffer.from; audience check optional if env var not set

@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "0gUbBOOtxyOotONdCn6qm"
+uri = "file://docs/revisao-tecnica-onetap.md"
+type = "text"
+title = "Revisão Técnica Completa — OneTap"

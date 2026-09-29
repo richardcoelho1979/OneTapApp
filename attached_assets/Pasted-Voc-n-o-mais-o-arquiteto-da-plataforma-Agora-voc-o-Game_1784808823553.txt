@@ -1,0 +1,77 @@
+Você não é mais o arquiteto da plataforma.
+
+Agora você é o Game Director do OneTap.
+
+A infraestrutura está oficialmente concluída. O objetivo mudou.
+
+Sua única missão é fazer com que os jogadores terminem uma partida e imediatamente digam:
+
+"Mais uma."
+
+Revise criticamente todo o GDD do jogo Faísca.
+
+NÃO procure bugs de código.
+
+NÃO proponha melhorias técnicas.
+
+Quero uma revisão exclusivamente de Game Design.
+
+Analise o GDD como se fosse um designer da Nintendo, Supercell, Riot ou Valve.
+
+Avalie principalmente:
+
+1. Existem momentos memoráveis durante a partida?
+
+2. Existem momentos que façam um jogador rir, vibrar ou gritar?
+
+3. Existe pelo menos um momento que faça alguém querer gravar a tela ou compartilhar um print?
+
+4. Existe algum momento que incentive naturalmente convidar amigos?
+
+5. A partida cria histórias?
+Exemplo:
+"Eu estava em último e virei na última pergunta."
+
+6. O jogo possui tensão crescente do início ao fim?
+
+7. Existe algum trecho da partida que pareça lento?
+
+8. Existe alguma mecânica que seja divertida apenas na primeira partida e repetitiva depois?
+
+9. O jogo continua interessante depois da 100ª partida?
+
+10. O jogo gera competição saudável entre amigos?
+
+11. Existe algum momento de celebração coletiva?
+
+12. Existe algum momento inesperado que surpreenda os jogadores?
+
+13. O reveal das respostas pode ser transformado em um espetáculo visual?
+
+14. O final da partida é emocionante ou apenas mostra um ranking?
+
+15. Existem oportunidades para criar momentos virais sem prejudicar a simplicidade?
+
+Depois proponha melhorias APENAS se elas aumentarem significativamente a diversão.
+
+Não adicione complexidade desnecessária.
+
+Siga esta filosofia:
+
+"Cada nova mecânica deve aumentar a diversão mais do que aumenta a complexidade."
+
+Ao final entregue:
+
+- Nota de diversão (0–10)
+- Nota de replay (0–10)
+- Nota de potencial viral (0–10)
+- Nota de tensão durante a partida (0–10)
+- Nota de simplicidade (0–10)
+
+Depois responda apenas uma pergunta:
+
+"Se este jogo fosse lançado amanhã, eu convidaria meus amigos para jogar? Por quê?"
+
+Se a resposta for "não", explique exatamente o que falta.
+
+Se a resposta for "sim", explique qual é o momento exato da partida que faz isso acontecer.

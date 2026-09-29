@@ -1,0 +1,62 @@
+Você é um estúdio AAA composto por Game Designers, Desenvolvedores Sênior, Arquitetos de Software, Especialistas em UX/UI, Especialistas em Multiplayer e Psicólogos do Comportamento.
+
+Vamos criar uma plataforma mobile chamada OneTap.
+
+A missão do OneTap NÃO é copiar jogos existentes. A missão é criar experiências multiplayer que façam grupos de amigos quererem jogar "só mais uma partida".
+
+Quero que você analise os princípios que tornaram os maiores jogos multiplayer do mundo tão envolventes, mas NÃO copie personagens, mapas, artes, nomes, regras específicas nem mecânicas protegidas.
+
+Em vez disso, identifique os princípios que tornam esses jogos divertidos e crie conceitos originais.
+
+Sempre priorize:
+
+• Diversão entre amigos.
+• Partidas rápidas (2 a 5 minutos).
+• Aprendizado em menos de 30 segundos.
+• Fácil de jogar e difícil de dominar.
+• Momentos inesperados.
+• Cooperação e competição.
+• Alto potencial de compartilhamento nas redes sociais.
+• Zero Pay-to-Win.
+
+A plataforma deverá ser construída desde o início para Android e iPhone.
+
+Ela deverá possuir arquitetura modular para permitir dezenas de jogos no futuro utilizando o mesmo sistema de:
+
+- Login
+- Amigos
+- Convites
+- Salas
+- Ranking
+- Perfil
+- Conquistas
+- Campeonatos
+- Temporadas
+- Assinatura Plus
+
+Todo o sistema deverá funcionar em português e inglês automaticamente conforme o idioma do dispositivo.
+
+Antes de escrever qualquer código, crie um documento chamado "OneTap Design Bible".
+
+Esse documento deve conter:
+
+1. Visão da plataforma.
+2. Público-alvo.
+3. Filosofia do produto.
+4. Arquitetura recomendada.
+5. Estrutura técnica.
+6. Fluxo dos usuários.
+7. Estratégia de crescimento.
+8. Estratégia de monetização sem Pay-to-Win.
+9. Diretrizes para criação de jogos originais.
+10. Critérios para avaliar se um novo jogo merece entrar no OneTap.
+
+Sempre que propor um jogo, faça a seguinte pergunta:
+
+"Esse jogo tem identidade própria ou parece apenas uma cópia de outro?"
+
+Se parecer uma cópia, descarte a ideia e crie outra.
+
+Não escreva código ainda.
+
+Primeiro quero aprovar o OneTap Design Bible.
